@@ -22,9 +22,12 @@
     webhook: (script && script.getAttribute("data-webhook")) || window.ELITE_CHATBOT_WEBHOOK || "",
     title: (script && script.getAttribute("data-title")) || "Elite Airsoft",
     subtitle: (script && script.getAttribute("data-subtitle")) || "Asistente virtual",
-    accent: (script && script.getAttribute("data-accent")) || "#e8631a",
-    position: (script && script.getAttribute("data-position")) === "left" ? "left" : "right"
+    accent: (script && script.getAttribute("data-accent")) || "#A78D66",
+    position: (script && script.getAttribute("data-position")) === "left" ? "left" : "right",
+    mount: (script && script.getAttribute("data-mount")) || ""
   };
+  var mountEl = cfg.mount ? document.querySelector(cfg.mount) : null;
+  var INLINE = !!mountEl;
 
   var GREETING = "Hola, soy el asistente de Elite Airsoft. Puedo ayudarte con precios, sedes, edades, cumpleaños y reservas. ¿En qué te puedo ayudar?";
   var CHIPS = ["Precios de Airsoft", "Precios de Hidrogel", "Quiero reservar", "Cumpleaños", "Hablar con una persona"];
@@ -38,10 +41,14 @@
   var sessionId = store("elite_chat_sid") || uid();
   store("elite_chat_sid", sessionId);
 
-  var host = document.createElement("div");
-  host.id = "elite-chatbot-host";
-  host.style.cssText = "position:fixed;z-index:2147483000;bottom:0;" + cfg.position + ":0;";
-  document.body.appendChild(host);
+  var host;
+  if (INLINE) { host = mountEl; }
+  else {
+    host = document.createElement("div");
+    host.id = "elite-chatbot-host";
+    host.style.cssText = "position:fixed;z-index:2147483000;bottom:0;" + cfg.position + ":0;";
+    document.body.appendChild(host);
+  }
   var root = host.attachShadow({ mode: "open" });
 
   var css = "\
@@ -50,38 +57,41 @@
 .fab{position:fixed;bottom:20px;" + cfg.position + ":20px;width:60px;height:60px;border-radius:50%;border:0;cursor:pointer;background:" + cfg.accent + ";color:#fff;box-shadow:0 6px 20px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;transition:transform .15s}\
 .fab:hover{transform:scale(1.06)}\
 .fab svg{width:28px;height:28px;fill:#fff}\
-.panel{position:fixed;bottom:92px;" + cfg.position + ":20px;width:380px;max-width:calc(100vw - 24px);height:560px;max-height:calc(100dvh - 120px);background:#14170f;color:#e9ecdf;border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.45);display:none;flex-direction:column;overflow:hidden;border:1px solid #2b3020}\
+.panel{border-radius:12px;position:fixed;bottom:92px;" + cfg.position + ":20px;width:380px;max-width:calc(100vw - 24px);height:560px;max-height:calc(100dvh - 120px);background:#232527;color:#D8D2C2;border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.45);display:none;flex-direction:column;overflow:hidden;border:1px solid rgba(216,210,194,.14)}\
 .panel.open{display:flex}\
-.head{background:linear-gradient(135deg,#232a17,#1a1f11);padding:14px 16px;display:flex;align-items:center;gap:10px;border-bottom:3px solid " + cfg.accent + "}\
-.head .t{font-weight:700;font-size:16px;letter-spacing:.3px;text-transform:uppercase}\
-.head .s{font-size:12px;color:#aab392}\
+.head{background:linear-gradient(135deg,#2C2D2D,#232527);padding:14px 16px;display:flex;align-items:center;gap:10px;border-bottom:3px solid " + cfg.accent + "}\
+.head .t{font-family:Oswald,system-ui,sans-serif;font-weight:700;font-size:18px;letter-spacing:.05em;text-transform:uppercase}\
+.head .s{font-size:12px;color:#a99f88}\
 .head .grow{flex:1}\
-.icon-btn{background:none;border:0;color:#aab392;cursor:pointer;font-size:13px;padding:6px 8px;border-radius:6px}\
+.icon-btn{background:none;border:0;color:#a99f88;cursor:pointer;font-size:13px;padding:6px 8px;border-radius:6px}\
 .icon-btn:hover{color:#fff;background:rgba(255,255,255,.08)}\
 .log{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth}\
 .m{max-width:86%;padding:9px 13px;border-radius:14px;font-size:14.5px;line-height:1.45;white-space:pre-wrap;word-wrap:break-word;overflow-wrap:anywhere}\
-.m.bot{align-self:flex-start;background:#222818;border:1px solid #2e3522;border-bottom-left-radius:4px}\
-.m.user{align-self:flex-end;background:" + cfg.accent + ";color:#fff;border-bottom-right-radius:4px}\
+.m.bot{align-self:flex-start;background:#2C2D2D;border:1px solid rgba(216,210,194,.12);border-bottom-left-radius:4px}\
+.m.user{align-self:flex-end;background:" + cfg.accent + ";color:#232527;font-weight:500;border-bottom-right-radius:4px}\
 .m.err{align-self:flex-start;background:#3a1a16;color:#ffb4a8;border:1px solid #5a2a22;border-bottom-left-radius:4px}\
-.m a{color:#ffb27a;text-decoration:underline}\
+.m a{color:#d9bd8c;text-decoration:underline}\
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}\
-.chip{background:transparent;border:1px solid " + cfg.accent + ";color:#ffd1ad;border-radius:999px;padding:6px 11px;font-size:12.5px;cursor:pointer}\
-.chip:hover{background:" + cfg.accent + ";color:#fff}\
+.chip{background:transparent;border:1px solid " + cfg.accent + ";color:#D8D2C2;border-radius:999px;padding:6px 11px;font-size:12.5px;cursor:pointer}\
+.chip:hover{background:" + cfg.accent + ";color:#232527}\
+.panel.inline{position:static;display:flex;width:100%;height:100%;max-width:none;max-height:none;box-shadow:0 12px 30px rgba(0,0,0,.35)}\
+.panel.inline [data-act=close],.inline ~ .fab{display:none}\
+:host(.inl) .fab{display:none}\
 .dots{display:inline-flex;gap:4px;padding:2px 0}\
-.dots i{width:7px;height:7px;border-radius:50%;background:#8b9576;animation:b 1s infinite}\
+.dots i{width:7px;height:7px;border-radius:50%;background:#a99f88;animation:b 1s infinite}\
 .dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}\
 @keyframes b{0%,80%,100%{opacity:.3;transform:translateY(0)}40%{opacity:1;transform:translateY(-3px)}}\
-form{display:flex;gap:8px;padding:10px 12px;border-top:1px solid #2b3020;background:#181c11}\
-textarea{flex:1;resize:none;border:1px solid #333b25;background:#0f120a;color:#e9ecdf;border-radius:12px;padding:9px 12px;font-size:14.5px;max-height:110px;outline:none;font-family:inherit}\
+form{display:flex;gap:8px;padding:10px 12px;border-top:1px solid rgba(216,210,194,.14);background:#2C2D2D}\
+textarea{flex:1;resize:none;border:1px solid rgba(216,210,194,.2);background:#1b1c1d;color:#D8D2C2;border-radius:12px;padding:9px 12px;font-size:14.5px;max-height:110px;outline:none;font-family:inherit}\
 textarea:focus{border-color:" + cfg.accent + "}\
-.send{background:" + cfg.accent + ";color:#fff;border:0;border-radius:12px;padding:0 16px;font-weight:600;cursor:pointer;font-size:14px}\
+.send{background:" + cfg.accent + ";color:#232527;border:0;border-radius:12px;padding:0 20px;font-family:Oswald,system-ui,sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;font-size:14px}\
 .send:disabled{opacity:.5;cursor:not-allowed}\
-.foot{font-size:10.5px;text-align:center;color:#6f7860;padding:0 0 6px;background:#181c11}\
+.foot{font-size:10.5px;text-align:center;color:#8a8372;padding:0 0 6px;background:#2C2D2D}\
 @media(max-width:480px){.panel{width:calc(100vw - 16px);" + cfg.position + ":8px;bottom:84px;height:calc(100dvh - 100px)}}";
 
   root.innerHTML = "<style>" + css + "</style>\
 <button class='fab' aria-label='Abrir chat'><svg viewBox='0 0 24 24'><path d='M4 3h16a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H9l-5 4v-4H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z'/></svg></button>\
-<section class='panel' role='dialog' aria-label='Chat de Elite Airsoft'>\
+<section class='panel" + (INLINE ? " inline open" : "") + "' role='dialog' aria-label='Chat de Elite Airsoft'>\
  <div class='head'><div><div class='t'></div><div class='s'></div></div><div class='grow'></div>\
   <button class='icon-btn' data-act='reset' title='Nueva conversación'>Nueva</button>\
   <button class='icon-btn' data-act='close' title='Cerrar'>&#10005;</button></div>\
@@ -186,5 +196,6 @@ textarea:focus{border-color:" + cfg.accent + "}\
   input.addEventListener("keydown", function (e) { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); form.requestSubmit(); } });
   input.addEventListener("input", function () { input.style.height = "auto"; input.style.height = Math.min(input.scrollHeight, 110) + "px"; });
 
+  if (INLINE) { fab.style.display = "none"; root.querySelector("[data-act=close]").style.display = "none"; toggle(true); }
   window.EliteChatbot = { open: function () { toggle(true); }, close: function () { toggle(false); } };
 })();
