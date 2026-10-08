@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Demo del chatbot - Elite Airsoft</title>
+<style>
+  body{margin:0;font:16px/1.6 system-ui,sans-serif;background:#f3f4ef;color:#1d2114}
+  main{max-width:720px;margin:12vh auto;padding:0 20px}
+  h1{margin:0 0 8px}
+  code{background:#e4e7da;padding:2px 6px;border-radius:5px}
+</style>
+</head>
+<body>
+<main>
+  <h1>Página de prueba</h1>
+  <p>El chatbot aparece como un botón flotante en la esquina inferior derecha. Para usarlo en cualquier sitio, pega este mismo script antes de <code>&lt;/body&gt;</code>.</p>
+</main>
+
+<!-- Reemplaza data-webhook por la URL de PRODUCCIÓN del nodo Webhook de n8n -->
+<script src="elite-chatbot-widget.js"
+        data-webhook="https://mercho.app.n8n.cloud/webhook/elite-chatbot"
+        defer></script>
+</body>
+</html>
